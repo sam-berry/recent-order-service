@@ -5,7 +5,7 @@ import java.util.concurrent.ConcurrentHashMap
 
 @Service
 class OrderTimeline {
-    private val timeline: MutableMap<OrderTimestamp, OrderStatistics> = ConcurrentHashMap()
+    private val timeline: MutableMap<OrderTimestamp, MutableOrderStatistics> = ConcurrentHashMap()
 
     fun addOrder(order: Order) {
         val orderAmount = order.amount
@@ -22,35 +22,23 @@ class OrderTimeline {
         timestamps
             .forEach {
                 val existingStatistic = timeline[it]
-                val newStatistic: OrderStatistics
 
-                newStatistic = if (existingStatistic == null)
-                    OrderStatistics(
+                if (existingStatistic == null) {
+                    timeline[it] = MutableOrderStatistics(
                         sum = orderAmount,
                         avg = orderAmount,
                         max = orderAmount,
                         min = orderAmount,
                         count = 1
                     )
-                else {
-                    val newSum = existingStatistic.sum.plus(orderAmount)
-                    val newCount = existingStatistic.count + 1
-
-                    OrderStatistics(
-                        sum = newSum,
-                        avg = newSum.divide(newCount),
-                        max = existingStatistic.max.orMax(orderAmount),
-                        min = existingStatistic.min.orMin(orderAmount),
-                        count = newCount
-                    )
+                } else {
+                    existingStatistic.addOrder(orderAmount)
                 }
-
-                timeline[it] = newStatistic
             }
     }
 
     fun getStatistics(timestamp: OrderTimestamp): OrderStatistics {
-        return timeline[timestamp.toSeconds()] ?: EMPTY_STATISTICS
+        return timeline[timestamp.toSeconds()]?.toImmutable() ?: EMPTY_STATISTICS
     }
 
     fun deleteOrders() {
