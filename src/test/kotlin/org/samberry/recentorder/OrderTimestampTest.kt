@@ -12,21 +12,21 @@ class OrderTimestampTest {
     }
 
     @Test
-    fun `increments 1 millisecond to get to the next moment`() {
-        val timestamp = timestamp("2018-08-23T07:30:00.000Z")
-        assertThat(timestamp.nextMoment().toString()).isEqualTo("2018-08-23T07:30:00.001Z")
+    fun `increments 1 second to get to the next moment`() {
+        val timestamp = timestamp("2018-08-23T07:30:00.922Z")
+        assertThat(timestamp.nextMoment().toString()).isEqualTo("2018-08-23T07:30:01.000Z")
     }
 
     @Test
-    fun `decrements 1 millisecond to get to the previous moment`() {
-        val timestamp = timestamp("2018-08-23T07:30:00.000Z")
-        assertThat(timestamp.previousMoment().toString()).isEqualTo("2018-08-23T07:29:59.999Z")
+    fun `decrements 1 second to get to the previous moment`() {
+        val timestamp = timestamp("2018-08-23T07:30:00.283Z")
+        assertThat(timestamp.previousMoment().toString()).isEqualTo("2018-08-23T07:29:59.000Z")
     }
 
     @Test
     fun `sets expiration 60s out`() {
         val timestamp = timestamp("2018-08-23T07:30:04.871Z")
-        assertThat(timestamp.expiration().toString()).isEqualTo("2018-08-23T07:31:04.871Z")
+        assertThat(timestamp.expiration().toString()).isEqualTo("2018-08-23T07:31:04.000Z")
     }
 
     @Test

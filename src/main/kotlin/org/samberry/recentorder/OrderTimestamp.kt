@@ -17,17 +17,17 @@ data class OrderTimestamp(
     private val timestamp: ZonedDateTime
 ) {
     fun nextMoment(): OrderTimestamp {
-        return this.plusMillis(1)
+        return this.plusSeconds(1).toSeconds()
     }
 
     fun previousMoment(): OrderTimestamp {
-        return this.minusMillis(1)
+        return this.minusSeconds(1).toSeconds()
     }
 
     fun expiration(): OrderTimestamp {
         return OrderTimestamp(
             timestamp = timestamp.plusSeconds(ORDER_DURATION_SECONDS.toLong())
-        )
+        ).toSeconds()
     }
 
     fun plusSeconds(seconds: Int): OrderTimestamp {
@@ -81,6 +81,22 @@ data class OrderTimestamp(
 
     override fun hashCode(): Int {
         return toString().hashCode()
+    }
+
+    // chop any values more precise than seconds
+    fun toSeconds(): OrderTimestamp {
+        return OrderTimestamp(
+            timestamp = ZonedDateTime.of(
+                timestamp.year,
+                timestamp.month.value,
+                timestamp.dayOfMonth,
+                timestamp.hour,
+                timestamp.minute,
+                timestamp.second,
+                0,
+                timestamp.zone
+            )
+        )
     }
 
     companion object {
