@@ -1,9 +1,7 @@
 package org.samberry.recentorder
 
-import org.springframework.stereotype.Service
 import java.util.concurrent.ConcurrentHashMap
 
-@Service
 class OrderTimeline {
     private val timeline: MutableMap<OrderTimestamp, MutableOrderStatistics> = ConcurrentHashMap()
 

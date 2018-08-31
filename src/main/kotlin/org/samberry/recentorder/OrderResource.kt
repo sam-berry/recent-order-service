@@ -1,33 +1,33 @@
 package org.samberry.recentorder
 
-import org.springframework.http.HttpStatus
-import org.springframework.http.ResponseEntity
-import org.springframework.web.bind.annotation.DeleteMapping
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.ResponseBody
-import org.springframework.web.bind.annotation.RestController
+import javax.ws.rs.Consumes
+import javax.ws.rs.DELETE
+import javax.ws.rs.GET
+import javax.ws.rs.POST
+import javax.ws.rs.Path
+import javax.ws.rs.Produces
+import javax.ws.rs.core.MediaType
 
-@RestController
+@Path("/")
+@Produces(MediaType.APPLICATION_JSON)
+@Consumes(MediaType.APPLICATION_JSON)
 class OrderResource(
     private val orderService: OrderService
 ) {
-    @PostMapping("/orders")
-    fun addOrder(@RequestBody order: Order): ResponseEntity<Unit> {
+    @POST
+    @Path("/orders")
+    fun addOrder(order: Order) {
         orderService.addOrder(order)
-        return ResponseEntity(HttpStatus.CREATED)
     }
 
-    @DeleteMapping("/orders")
-    fun deleteOrders(): ResponseEntity<Unit> {
+    @DELETE
+    @Path("/orders")
+    fun deleteOrders() {
         orderService.deleteOrders()
-
-        return ResponseEntity(HttpStatus.NO_CONTENT)
     }
 
-    @ResponseBody
-    @GetMapping("/statistics")
+    @GET
+    @Path("/statistics")
     fun fetchStatistics(): OrderStatistics {
         return orderService.fetchStatistics()
     }
