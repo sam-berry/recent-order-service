@@ -6,10 +6,6 @@ import io.dropwizard.setup.Bootstrap
 import io.dropwizard.setup.Environment
 
 class RecentOrderApplication : Application<RecentOrderConfiguration>() {
-    fun main(args: Array<String>) {
-        RecentOrderApplication().run(*args)
-    }
-
     override fun initialize(bootstrap: Bootstrap<RecentOrderConfiguration>) {
         bootstrap.objectMapper.registerKotlinModule()
     }
@@ -20,5 +16,12 @@ class RecentOrderApplication : Application<RecentOrderConfiguration>() {
     ) {
         environment.jersey()
             .register(OrderResource(OrderService(OrderTimeline())))
+    }
+
+    companion object {
+        @JvmStatic
+        fun main(args: Array<String>) {
+            RecentOrderApplication().run(*args)
+        }
     }
 }
