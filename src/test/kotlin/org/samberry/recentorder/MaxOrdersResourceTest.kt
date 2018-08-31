@@ -1,19 +1,22 @@
 package org.samberry.recentorder
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 import io.dropwizard.jackson.Jackson
-import io.dropwizard.testing.junit.ResourceTestRule
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.After
 import org.junit.Before
-import org.junit.ClassRule
 import org.junit.Test
+import java.io.InputStream
 import java.math.BigDecimal
 import java.math.RoundingMode
 import java.util.concurrent.Callable
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
+import javax.ws.rs.client.ClientBuilder
 import javax.ws.rs.client.Entity
+import javax.ws.rs.client.WebTarget
+import javax.ws.rs.core.MediaType
 
 class MaxOrdersResourceTest {
     private val numberOfThreads = 10
@@ -21,16 +24,25 @@ class MaxOrdersResourceTest {
 
     private lateinit var amounts: List<Double>
     private lateinit var executorService: ExecutorService
+    private lateinit var webTarget: WebTarget
+    private lateinit var objectMapper: ObjectMapper
 
     @Before
     fun setUp() {
         amounts = listOf(22.31, 22.11, 10.1, 0.02, 0.03, 155.2, 7.73)
         executorService = Executors.newFixedThreadPool(numberOfThreads)
+        webTarget = ClientBuilder.newClient().target("http://localhost:8081/api")
+        objectMapper = Jackson.newObjectMapper().registerModule(KotlinModule())
+        clearOrders()
     }
 
     @After
     fun tearDown() {
-        resources.target("/orders").request().delete()
+        clearOrders()
+    }
+
+    private fun clearOrders() {
+        webTarget.path("/orders").request().delete()
     }
 
     private fun addAmounts(left: Double, right: Double): Double {
@@ -48,8 +60,9 @@ class MaxOrdersResourceTest {
                     Thread.currentThread().id to jobsForWorker
                         .map { amounts[it % amounts.size] }
                         .map {
-                            resources.target("/orders")
+                            webTarget.path("/orders")
                                 .request()
+                                .accept(MediaType.APPLICATION_JSON_TYPE)
                                 .post(Entity.json(Order(OrderAmount(it), OrderTimestamp.now())))
                             it
                         }
@@ -68,20 +81,9 @@ class MaxOrdersResourceTest {
             .map { it.second }
             .reduce { total, amount -> addAmounts(total, amount) }
 
-        val stats = resources.target("/statistics").request().get(OrderStatistics::class.java)
+        val statsResponse = webTarget.path("/statistics").request().get()
+        val stats = objectMapper.readValue(statsResponse.entity as InputStream, OrderStatistics::class.java)
 
         assertThat(stats.sum).isEqualTo(OrderAmount(totalAmount))
-    }
-
-    companion object {
-        private val objectMapper = Jackson.newObjectMapper()
-            .registerModule(KotlinModule())
-
-        @ClassRule
-        @JvmField
-        val resources = ResourceTestRule.builder()
-            .setMapper(objectMapper)
-            .addResource(OrderResource(OrderService(OrderTimeline())))
-            .build()!!
     }
 }
