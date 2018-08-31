@@ -11,3 +11,20 @@ A challenge for processing many concurrent requests.
 * Must process 2,000,000 total requests across 10 concurrent clients fast enough to return statistics including them all
 * Must provide an HTTP API with 3 endpoints - `POST /orders`, `GET /reports/orders-last-30s`, `DELETE /orders`
 * Must run with Maven on a single JVM limited by the following flags: `-Xms2g -Xmx2g`
+
+## To Run `MaxOrdersResourceTest`
+
+Need to have two terminal sessions positioned in the root directory of this repository.
+
+In one terminal bundle and start the application:
+
+```
+MAVEN_OPTS="-Xmx500m -Xms500m" mvn -DskipTests clean package && \
+java -jar target/recent-order-service-1.0.jar server environment.yml
+```
+
+In another terminal execute the test:
+
+```
+MAVEN_OPTS="-Xmx500m -Xms500m" mvn test -Dtest=MaxOrdersResourceTest
+```
