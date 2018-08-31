@@ -17,7 +17,7 @@ import javax.ws.rs.client.Entity
 
 class MaxOrdersResourceTest {
     private val numberOfThreads = 10
-    private val numberOfOrders = 200_000
+    private val numberOfOrders = 2_000_000
 
     private lateinit var amounts: List<Double>
     private lateinit var executorService: ExecutorService
@@ -67,7 +67,6 @@ class MaxOrdersResourceTest {
         val totalAmount = results
             .map { it.second }
             .reduce { total, amount -> addAmounts(total, amount) }
-
 
         val stats = resources.target("/statistics").request().get(OrderStatistics::class.java)
 
