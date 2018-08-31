@@ -123,24 +123,4 @@ class OrderAmountTest {
         )
         assertThat(OrderAmount.fromString("10.34121").format()).isEqualTo("10.34")
     }
-
-    @Test(expected = InvalidInputException::class)
-    fun `throws invalid input exception if empty string provided`() {
-        OrderAmount.fromString("")
-    }
-
-    @Test(expected = InvalidInputException::class)
-    fun `throws invalid input exception if character string provided`() {
-        OrderAmount.fromString("abc")
-    }
-
-    @Test(expected = InvalidInputException::class)
-    fun `throws invalid input exception if whitespace string provided`() {
-        OrderAmount.fromString("   ")
-    }
-
-    @Test(expected = InvalidInputException::class)
-    fun `throws invalid input exception if whitespace and numbers provided`() {
-        OrderAmount.fromString("1 ")
-    }
 }

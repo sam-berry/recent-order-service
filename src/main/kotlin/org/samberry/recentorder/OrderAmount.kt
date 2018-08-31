@@ -55,11 +55,7 @@ data class OrderAmount(
         @JvmStatic
         @JsonCreator
         fun fromString(value: String): OrderAmount {
-            try {
-                return OrderAmount(value.toBigDecimal())
-            } catch (e: NumberFormatException) {
-                throw InvalidInputException("order amount", value)
-            }
+            return OrderAmount(value.toBigDecimal())
         }
     }
 }

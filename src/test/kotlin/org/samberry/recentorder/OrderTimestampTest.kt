@@ -79,14 +79,4 @@ class OrderTimestampTest {
         assertThat(OrderTimestamp.fromString("2018-08-23T07:30:00.000Z").toString())
             .isEqualTo("2018-08-23T07:30:00.000Z")
     }
-
-    @Test(expected = InvalidInputException::class)
-    fun `throws invalid input exception if empty string provided`() {
-        OrderTimestamp.fromString("")
-    }
-
-    @Test(expected = InvalidInputException::class)
-    fun `throws invalid input exception if random string provided`() {
-        OrderTimestamp.fromString("abc")
-    }
 }

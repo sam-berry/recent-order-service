@@ -5,7 +5,6 @@ import com.fasterxml.jackson.annotation.JsonValue
 import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
-import java.time.format.DateTimeParseException
 
 private const val NANOSECONDS_IN_A_MILLISECOND = 1_000_000
 
@@ -107,11 +106,7 @@ data class OrderTimestamp(
         @JvmStatic
         @JsonCreator
         fun fromString(value: String): OrderTimestamp {
-            try {
-                return OrderTimestamp(ZonedDateTime.parse(value))
-            } catch (e: DateTimeParseException) {
-                throw InvalidInputException("order timestamp", value)
-            }
+            return OrderTimestamp(ZonedDateTime.parse(value))
         }
     }
 }
