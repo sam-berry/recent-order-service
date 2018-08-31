@@ -24,6 +24,7 @@ class MaxOrdersResourceTest {
     lateinit var testRestTemplate: TestRestTemplate
 
     private val numberOfThreads = 10
+    private val numberOfOrders = 200_000
 
     private lateinit var amounts: List<Double>
     private lateinit var executorService: ExecutorService
@@ -45,9 +46,8 @@ class MaxOrdersResourceTest {
             .toDouble()
     }
 
-    @Test
+    @Test(timeout = (ORDER_DURATION_SECONDS + 3) * 1000L)
     fun `can process the maximum number of orders fast enough concurrently`() {
-        val numberOfOrders = 20_000
         val workers = (1..numberOfOrders)
             .chunked(numberOfOrders / numberOfThreads)
             .map { jobsForWorker ->
