@@ -177,65 +177,48 @@ class OrderTimelineTest {
         assertThat(afterOrderExpires).isEqualTo(EMPTY_STATISTICS)
     }
 
-    /**
-     * Say a order for 5 is posted at 7:30:00, then a
-     * order for 7 is posted at 7:30:30.
-     *
-     *         7:29      7:30      7:31      7:32
-     *         |----------T----T----|---------|->
-     *              ^     ^    ^    ^    ^
-     *    sum       0     5    12   7    0
-     *    avg       0     5    6    7    0
-     *    max       0     5    7    7    0
-     *    min       0     5    5    7    0
-     *    count     0     1    2    1    0
-     */
     @Test
     fun `correctly reports two overlapping orders`() {
         val timestampA = timestamp("2018-08-23T07:30:00.000Z")
         val orderA = order(5.0, timestampA.toString())
-        val timestampB = timestamp("2018-08-23T07:30:30.000Z")
+        val timestampB = timestampA.plusSeconds(ORDER_DURATION_SECONDS / 2)
         val orderB = order(7.0, timestampB.toString())
 
         orderTimeline.addOrder(orderA)
         orderTimeline.addOrder(orderB)
 
-        assertThat(orderTimeline.getStatistics(timestamp("2018-08-23T07:29:30.000Z")))
+        val aStatistics = OrderStatistics(
+            sum = stat(5.0),
+            avg = stat(5.0),
+            max = stat(5.0),
+            min = stat(5.0),
+            count = 1
+        )
+        val bStatistics = OrderStatistics(
+            sum = stat(7.0),
+            avg = stat(7.0),
+            max = stat(7.0),
+            min = stat(7.0),
+            count = 1
+        )
+        val aAndBStatistics = OrderStatistics(
+            sum = stat(12.0),
+            avg = stat(6.0),
+            max = stat(7.0),
+            min = stat(5.0),
+            count = 2
+        )
+
+        assertThat(orderTimeline.getStatistics(timestampA.previousMoment()))
             .isEqualTo(EMPTY_STATISTICS)
-
-        assertThat(orderTimeline.getStatistics(timestamp("2018-08-23T07:30:00.000Z"))).isEqualTo(
-            OrderStatistics(
-                sum = stat(5.0),
-                avg = stat(5.0),
-                max = stat(5.0),
-                min = stat(5.0),
-                count = 1
-            )
-        )
-
-        assertThat(orderTimeline.getStatistics(timestamp("2018-08-23T07:30:30.000Z"))).isEqualTo(
-            OrderStatistics(
-                sum = stat(12.0),
-                avg = stat(6.0),
-                max = stat(7.0),
-                min = stat(5.0),
-                count = 2
-            )
-        )
-
-        assertThat(orderTimeline.getStatistics(timestamp("2018-08-23T07:31:00.000Z"))).isEqualTo(
-            OrderStatistics(
-                sum = stat(7.0),
-                avg = stat(7.0),
-                max = stat(7.0),
-                min = stat(7.0),
-                count = 1
-            )
-        )
-
-        assertThat(orderTimeline.getStatistics(timestamp("2018-08-23T07:31:30.000Z"))).isEqualTo(
-            EMPTY_STATISTICS
-        )
+        assertThat(orderTimeline.getStatistics(timestampA))
+            .isEqualTo(aStatistics)
+        assertThat(orderTimeline.getStatistics(timestampB))
+            .isEqualTo(aAndBStatistics)
+        assertThat(orderTimeline.getStatistics(timestampB.plusSeconds(ORDER_DURATION_SECONDS - 1)))
+            .isEqualTo(bStatistics)
+        assertThat(orderTimeline.getStatistics(timestampB.plusSeconds(ORDER_DURATION_SECONDS)))
+            .isEqualTo(EMPTY_STATISTICS)
     }
 
     /**
@@ -255,58 +238,34 @@ class OrderTimelineTest {
     fun `correctly reports two adjacent orders`() {
         val timestampA = timestamp("2018-08-23T07:30:00.000Z")
         val orderA = order(5.0, timestampA.toString())
-        val timestampB = timestamp("2018-08-23T07:31:00.000Z")
+        val timestampB = timestampA.plusSeconds(ORDER_DURATION_SECONDS)
         val orderB = order(7.0, timestampB.toString())
 
         orderTimeline.addOrder(orderA)
         orderTimeline.addOrder(orderB)
 
-        assertThat(orderTimeline.getStatistics(timestamp("2018-08-23T07:29:30.000Z")))
-            .isEqualTo(EMPTY_STATISTICS)
+        assertThat(orderTimeline.getStatistics(timestampA.previousMoment())).isEqualTo(EMPTY_STATISTICS)
 
-        assertThat(orderTimeline.getStatistics(timestamp("2018-08-23T07:30:00.000Z"))).isEqualTo(
-            OrderStatistics(
-                sum = stat(5.0),
-                avg = stat(5.0),
-                max = stat(5.0),
-                min = stat(5.0),
-                count = 1
-            )
+        val aStatistics = OrderStatistics(
+            sum = stat(5.0),
+            avg = stat(5.0),
+            max = stat(5.0),
+            min = stat(5.0),
+            count = 1
+        )
+        val bStatistics = OrderStatistics(
+            sum = stat(7.0),
+            avg = stat(7.0),
+            max = stat(7.0),
+            min = stat(7.0),
+            count = 1
         )
 
-        assertThat(orderTimeline.getStatistics(timestamp("2018-08-23T07:30:30.000Z"))).isEqualTo(
-            OrderStatistics(
-                sum = stat(5.0),
-                avg = stat(5.0),
-                max = stat(5.0),
-                min = stat(5.0),
-                count = 1
-            )
-        )
-
-        assertThat(orderTimeline.getStatistics(timestamp("2018-08-23T07:31:00.000Z"))).isEqualTo(
-            OrderStatistics(
-                sum = stat(7.0),
-                avg = stat(7.0),
-                max = stat(7.0),
-                min = stat(7.0),
-                count = 1
-            )
-        )
-
-        assertThat(orderTimeline.getStatistics(timestamp("2018-08-23T07:31:30.000Z"))).isEqualTo(
-            OrderStatistics(
-                sum = stat(7.0),
-                avg = stat(7.0),
-                max = stat(7.0),
-                min = stat(7.0),
-                count = 1
-            )
-        )
-
-        assertThat(orderTimeline.getStatistics(timestamp("2018-08-23T07:32:00.000Z"))).isEqualTo(
-            EMPTY_STATISTICS
-        )
+        assertThat(orderTimeline.getStatistics(timestampA)).isEqualTo(aStatistics)
+        assertThat(orderTimeline.getStatistics(timestampA.nextMoment())).isEqualTo(aStatistics)
+        assertThat(orderTimeline.getStatistics(timestampB)).isEqualTo(bStatistics)
+        assertThat(orderTimeline.getStatistics(timestampB.nextMoment())).isEqualTo(bStatistics)
+        assertThat(orderTimeline.getStatistics(timestampB.expiration())).isEqualTo(EMPTY_STATISTICS)
     }
 
     /**
@@ -332,46 +291,31 @@ class OrderTimelineTest {
         orderTimeline.addOrder(orderA)
         orderTimeline.addOrder(orderB)
 
-        assertThat(orderTimeline.getStatistics(timestamp("2018-08-23T07:29:30.000Z")))
-            .isEqualTo(EMPTY_STATISTICS)
 
-        assertThat(orderTimeline.getStatistics(timestamp("2018-08-23T07:30:00.000Z"))).isEqualTo(
-            OrderStatistics(
-                sum = stat(5.0),
-                avg = stat(5.0),
-                max = stat(5.0),
-                min = stat(5.0),
-                count = 1
-            )
+        val timestampAStatistics = OrderStatistics(
+            sum = stat(5.0),
+            avg = stat(5.0),
+            max = stat(5.0),
+            min = stat(5.0),
+            count = 1
         )
 
-        assertThat(orderTimeline.getStatistics(timestamp("2018-08-23T07:30:30.000Z"))).isEqualTo(
-            OrderStatistics(
-                sum = stat(5.0),
-                avg = stat(5.0),
-                max = stat(5.0),
-                min = stat(5.0),
-                count = 1
-            )
-        )
+        assertThat(orderTimeline.getStatistics(timestampA.previousMoment())).isEqualTo(EMPTY_STATISTICS)
+        assertThat(orderTimeline.getStatistics(timestampA)).isEqualTo(timestampAStatistics)
+        assertThat(orderTimeline.getStatistics(timestampA.nextMoment())).isEqualTo(timestampAStatistics)
+        assertThat(orderTimeline.getStatistics(timestampA.expiration())).isEqualTo(EMPTY_STATISTICS)
 
-        assertThat(orderTimeline.getStatistics(timestamp("2018-08-23T07:31:00.000Z"))).isEqualTo(
-            EMPTY_STATISTICS
+        val timestampBStatistics = OrderStatistics(
+            sum = stat(7.0),
+            avg = stat(7.0),
+            max = stat(7.0),
+            min = stat(7.0),
+            count = 1
         )
-
-        assertThat(orderTimeline.getStatistics(timestamp("2018-08-23T07:31:30.000Z"))).isEqualTo(
-            OrderStatistics(
-                sum = stat(7.0),
-                avg = stat(7.0),
-                max = stat(7.0),
-                min = stat(7.0),
-                count = 1
-            )
-        )
-
-        assertThat(orderTimeline.getStatistics(timestamp("2018-08-23T07:32:50.000Z"))).isEqualTo(
-            EMPTY_STATISTICS
-        )
+        assertThat(orderTimeline.getStatistics(timestampB.previousMoment())).isEqualTo(EMPTY_STATISTICS)
+        assertThat(orderTimeline.getStatistics(timestampB)).isEqualTo(timestampBStatistics)
+        assertThat(orderTimeline.getStatistics(timestampB.nextMoment())).isEqualTo(timestampBStatistics)
+        assertThat(orderTimeline.getStatistics(timestampB.expiration())).isEqualTo(EMPTY_STATISTICS)
     }
 
     @Test

@@ -2,7 +2,7 @@ package org.samberry.recentorder
 
 import org.springframework.stereotype.Service
 
-const val ORDER_DURATION_SECONDS = 60
+const val ORDER_DURATION_SECONDS = 30
 
 @Service
 class OrderService(
